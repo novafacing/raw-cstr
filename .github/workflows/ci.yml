@@ -1,3 +1,6 @@
+# Copyright (C) 2023 Rowan Hart
+# SPDX-License-Identifier: Apache-2.0
+---
 name: Build and Test
 
 on:
@@ -14,8 +17,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build
         run: cargo build --verbose
+      - name: Check
+        run: cargo clippy --verbose
       - name: Run tests
         run: cargo test --verbose

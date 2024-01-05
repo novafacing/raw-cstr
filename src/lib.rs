@@ -1,3 +1,6 @@
+// Copyright (C) 2023 Intel Corporation
+// SPDX-License-Identifier: Apache-2.0
+
 //! Raw C String conversion and conversion trait
 //!
 //! If you want constant C strings, use `c"Hello, World"` as
