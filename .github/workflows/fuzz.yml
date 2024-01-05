@@ -1,0 +1,31 @@
+name: Fuzz
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Cargo Fuzz
+        run: cargo install cargo-fuzz
+      - name: Build
+        run: cargo build --verbose
+      - name: Run Fuzz Tests
+        run: |
+          timeout --preserve-status 600 cargo fuzz run fuzz_raw_cstr || exit 0
+
+          if [ -d ./fuzz/artifacts ]; then
+            if find ./fuzz/artifacts -mindepth 1 -maxdepth 1 2> /dev/null | read -r; then
+              echo "❗ Fuzz test found an issue"
+              exit 1
+            fi
+          fi
