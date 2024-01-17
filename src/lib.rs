@@ -20,7 +20,10 @@ struct RawCStrs(RefCell<HashMap<String, *mut i8>>);
 impl Drop for RawCStrs {
     fn drop(&mut self) {
         self.0.borrow_mut().iter_mut().for_each(|(_, c)| unsafe {
+            #[cfg(target_arch = "aarch64")]
             drop(CString::from_raw((*c) as *mut u8));
+            #[cfg(not(target_arch = "aarch64"))]
+            drop(CString::from_raw(*c));
         });
         self.0.borrow_mut().clear();
     }
@@ -54,7 +57,10 @@ where
         if let Some(saved) = saved {
             Ok(*saved)
         } else {
+            #[cfg(target_arch = "aarch64")]
             let raw = CString::new(str.as_ref())?.into_raw() as *mut i8;
+            #[cfg(not(target_arch = "aarch64"))]
+            let raw = CString::new(str.as_ref())?.into_raw();
             raw_cstrs_map.insert(str.as_ref().to_string(), raw);
             Ok(raw)
         }
