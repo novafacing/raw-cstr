@@ -120,6 +120,9 @@ impl AsRawCstr for &'static CStr {
     fn as_raw_cstr(&self) -> Result<*mut i8> {
         // No need to copy for static lifetime CStrs because the pointer
         // lifetime is also static
-        Ok(self.as_ptr() as *mut i8)
+        #[cfg(target_arch = "aarch64")]
+        return Ok(self.as_ptr() as *mut i8);
+        #[cfg(not(target_arch = "aarch64"))]
+        return Ok(self.as_ptr());
     }
 }
