@@ -11,7 +11,7 @@ fn test_string_eq() -> Result<()> {
     const ORIG_STR: &str = "Hello, world!";
     let c_str = raw_cstr(ORIG_STR)?;
 
-    let rust_str = unsafe { CStr::from_ptr(c_str) }
+    let rust_str = unsafe { CStr::from_ptr(c_str as *mut u8) }
         .to_str()
         .expect("Couldn't get CStr")
         .to_owned();
@@ -32,11 +32,11 @@ fn test_strings_reused() -> Result<()> {
         "String pointers are different"
     );
 
-    let rust_str = unsafe { CStr::from_ptr(c_str) }
+    let rust_str = unsafe { CStr::from_ptr(c_str as *mut u8) }
         .to_str()
         .expect("Couldn't get CStr")
         .to_owned();
-    let o_rust_str = unsafe { CStr::from_ptr(o_c_str) }
+    let o_rust_str = unsafe { CStr::from_ptr(o_c_str as *mut u8) }
         .to_str()
         .expect("Couldn't get CStr")
         .to_owned();

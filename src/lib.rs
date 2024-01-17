@@ -9,14 +9,18 @@
 #![deny(clippy::unwrap_used)]
 
 use anyhow::{bail, Result};
-use std::{cell::RefCell, collections::HashMap, ffi::CString};
+use std::{
+    cell::RefCell,
+    collections::HashMap,
+    ffi::{CStr, CString},
+};
 
 struct RawCStrs(RefCell<HashMap<String, *mut i8>>);
 
 impl Drop for RawCStrs {
     fn drop(&mut self) {
         self.0.borrow_mut().iter_mut().for_each(|(_, c)| unsafe {
-            drop(CString::from_raw(*c));
+            drop(CString::from_raw((*c) as *mut u8));
         });
         self.0.borrow_mut().clear();
     }
@@ -50,7 +54,7 @@ where
         if let Some(saved) = saved {
             Ok(*saved)
         } else {
-            let raw = CString::new(str.as_ref())?.into_raw();
+            let raw = CString::new(str.as_ref())?.into_raw() as *mut i8;
             raw_cstrs_map.insert(str.as_ref().to_string(), raw);
             Ok(raw)
         }
@@ -89,5 +93,27 @@ impl AsRawCstr for &str {
 impl AsRawCstr for String {
     fn as_raw_cstr(&self) -> Result<*mut i8> {
         raw_cstr(self)
+    }
+}
+
+impl AsRawCstr for CString {
+    fn as_raw_cstr(&self) -> Result<*mut i8> {
+        // Make a copy of the string so that we can return a pointer to it
+        raw_cstr(self.to_str()?)
+    }
+}
+
+impl AsRawCstr for CStr {
+    fn as_raw_cstr(&self) -> Result<*mut i8> {
+        // Make a copy of the string so that we can return a pointer to it
+        raw_cstr(self.to_str()?)
+    }
+}
+
+impl AsRawCstr for &'static CStr {
+    fn as_raw_cstr(&self) -> Result<*mut i8> {
+        // No need to copy for static lifetime CStrs because the pointer
+        // lifetime is also static
+        Ok(self.as_ptr() as *mut i8)
     }
 }
